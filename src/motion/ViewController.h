@@ -17,6 +17,12 @@ double currentMaxRotX;
 double currentMaxRotY;
 double currentMaxRotZ;
 
+double currentMaxPitch;
+double currentMaxRoll;
+double currentMaxYaw;
+
+CMAttitude *refAttitude;
+
 @interface ViewController : UIViewController
 
 @property (strong, nonatomic) IBOutlet UILabel *accX;
@@ -34,6 +40,10 @@ double currentMaxRotZ;
 @property (strong, nonatomic) IBOutlet UILabel *maxRotX;
 @property (strong, nonatomic) IBOutlet UILabel *maxRotY;
 @property (strong, nonatomic) IBOutlet UILabel *maxRotZ;
+
+@property (strong, nonatomic) IBOutlet UILabel *pitch;
+@property (strong, nonatomic) IBOutlet UILabel *roll;
+@property (strong, nonatomic) IBOutlet UILabel *yaw;
 
 - (IBAction)resetMaxValues:(id)sender;
 

@@ -27,22 +27,21 @@
     currentMaxRotY = 0;
     currentMaxRotZ = 0;
     
+    currentMaxPitch = 0;
+    currentMaxRoll = 0;
+    currentMaxYaw = 0;
+    
+    refAttitude = nil;
+    
     self.motionManager = [[CMMotionManager alloc] init];
-    self.motionManager.accelerometerUpdateInterval = .2;
-    self.motionManager.gyroUpdateInterval = .2;
-    
-    [self.motionManager startAccelerometerUpdatesToQueue:[NSOperationQueue currentQueue]
-                                             withHandler:^(CMAccelerometerData  *accelerometerData, NSError *error) {
-                                                 [self outputAccelertionData:accelerometerData.acceleration];
-                                                 if(error){
-                                                     NSLog(@"%@", error);
-                                                 }
-                                             }];
-    
-    [self.motionManager startGyroUpdatesToQueue:[NSOperationQueue currentQueue]
-                                    withHandler:^(CMGyroData *gyroData, NSError *error) {
-                                        [self outputRotationData:gyroData.rotationRate];
-                                    }];
+
+    self.motionManager.deviceMotionUpdateInterval = .2;
+    [self.motionManager startDeviceMotionUpdatesToQueue:[NSOperationQueue currentQueue] withHandler:^(CMDeviceMotion *motion, NSError *error) {
+        if(error){
+            NSLog(@"%@", error);
+        }
+        [self outputMotionData:motion];
+    }];
 
 }
 
@@ -52,53 +51,79 @@
     // Dispose of any resources that can be recreated.
 }
 
--(void)outputAccelertionData:(CMAcceleration)acceleration
+-(void)outputMotionData:(CMDeviceMotion*)motion
 {
-    self.accX.text = [NSString stringWithFormat:@" %.2fg",acceleration.x];
-    if(fabs(acceleration.x) > fabs(currentMaxAccelX))
+    if (refAttitude == nil) {
+        refAttitude = [motion.attitude copy];
+    }
+    // adjust attitude so we can use yaw
+    [motion.attitude multiplyByInverseOfAttitude:refAttitude];
+    
+    /// Acceleromiter (which way is down?)
+    self.accX.text = [NSString stringWithFormat:@" %.2fg", motion.gravity.x];
+    if(fabs(motion.gravity.x) > fabs(currentMaxAccelX))
     {
-        currentMaxAccelX = acceleration.x;
+        currentMaxAccelX = motion.gravity.x;
     }
     
-    self.accY.text = [NSString stringWithFormat:@" %.2fg",acceleration.y];
-    if(fabs(acceleration.y) > fabs(currentMaxAccelY))
+    self.accY.text = [NSString stringWithFormat:@" %.2fg", motion.gravity.y];
+    if(fabs(motion.gravity.y) > fabs(currentMaxAccelY))
     {
-        currentMaxAccelY = acceleration.y;
+        currentMaxAccelY = motion.gravity.y;
     }
     
-    self.accZ.text = [NSString stringWithFormat:@" %.2fg",acceleration.z];
-    if(fabs(acceleration.z) > fabs(currentMaxAccelZ))
+    self.accZ.text = [NSString stringWithFormat:@" %.2fg", motion.gravity.z];
+    if(fabs(motion.gravity.z) > fabs(currentMaxAccelZ))
     {
-        currentMaxAccelZ = acceleration.z;
+        currentMaxAccelZ = motion.gravity.z;
     }
     
     self.maxAccX.text = [NSString stringWithFormat:@" %.2f", currentMaxAccelX];
     self.maxAccY.text = [NSString stringWithFormat:@" %.2f", currentMaxAccelY];
     self.maxAccZ.text = [NSString stringWithFormat:@" %.2f", currentMaxAccelZ];
-}
-
--(void)outputRotationData:(CMRotationRate)rotation
-{
     
-    self.rotX.text = [NSString stringWithFormat:@" %.2fr/s",rotation.x];
-    if(fabs(rotation.x) > fabs(currentMaxRotX))
+    /// Rotation (How fast are we moving?)
+    self.rotX.text = [NSString stringWithFormat:@" %.2fr/s",motion.rotationRate.x];
+    if(fabs(motion.rotationRate.x) > fabs(currentMaxRotX))
     {
-        currentMaxRotX = rotation.x;
+        currentMaxRotX = motion.rotationRate.x;
     }
-    self.rotY.text = [NSString stringWithFormat:@" %.2fr/s",rotation.y];
-    if(fabs(rotation.y) > fabs(currentMaxRotY))
+    self.rotY.text = [NSString stringWithFormat:@" %.2fr/s",motion.rotationRate.y];
+    if(fabs(motion.rotationRate.y) > fabs(currentMaxRotY))
     {
-        currentMaxRotY = rotation.y;
+        currentMaxRotY = motion.rotationRate.y;
     }
-    self.rotZ.text = [NSString stringWithFormat:@" %.2fr/s",rotation.z];
-    if(fabs(rotation.z) > fabs(currentMaxRotZ))
+    self.rotZ.text = [NSString stringWithFormat:@" %.2fr/s",motion.rotationRate.z];
+    if(fabs(motion.rotationRate.z) > fabs(currentMaxRotZ))
     {
-        currentMaxRotZ = rotation.z;
+        currentMaxRotZ = motion.rotationRate.z;
     }
     
-    self.maxRotX.text = [NSString stringWithFormat:@" %.2f",currentMaxRotX];
-    self.maxRotY.text = [NSString stringWithFormat:@" %.2f",currentMaxRotY];
-    self.maxRotZ.text = [NSString stringWithFormat:@" %.2f",currentMaxRotZ];
+    self.maxRotX.text = [NSString stringWithFormat:@" %.2f", currentMaxRotX];
+    self.maxRotY.text = [NSString stringWithFormat:@" %.2f", currentMaxRotY];
+    self.maxRotZ.text = [NSString stringWithFormat:@" %.2f", currentMaxRotZ];
+    
+    /// Attitude
+    self.pitch.text = [NSString stringWithFormat:@" %.2f", motion.attitude.pitch];
+    if(fabs(motion.attitude.pitch) > fabs(currentMaxPitch))
+    {
+        currentMaxPitch = motion.attitude.pitch;
+    }
+    self.roll.text = [NSString stringWithFormat:@" %.2f", motion.attitude.roll];
+    if(fabs(motion.attitude.roll) > fabs(currentMaxRoll))
+    {
+        currentMaxRoll = motion.attitude.roll;
+    }
+    self.yaw.text = [NSString stringWithFormat:@" %.2f", motion.attitude.yaw];
+    if(fabs(motion.attitude.yaw) > fabs(currentMaxYaw))
+    {
+        currentMaxYaw = motion.attitude.yaw;
+    }
+    
+    //self.maxPitch.text = [NSString stringWithFormat:@" %.2f", currentMaxPitch];
+    //self.maxRoll.text = [NSString stringWithFormat:@" %.2f", currentMaxRoll];
+    //self.maxYaw.text = [NSString stringWithFormat:@" %.2f", currentMaxYaw];
+    
 }
 
 - (IBAction)resetMaxValues:(id)sender {
@@ -109,6 +134,12 @@
     currentMaxRotX = 0;
     currentMaxRotY = 0;
     currentMaxRotZ = 0;
+    
+    currentMaxPitch = 0;
+    currentMaxRoll = 0;
+    currentMaxYaw = 0;
+    
+    refAttitude = nil;
 }
 
 @end
