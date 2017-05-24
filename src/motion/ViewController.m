@@ -36,12 +36,20 @@
     self.motionManager = [[CMMotionManager alloc] init];
 
     self.motionManager.deviceMotionUpdateInterval = .2;
-    [self.motionManager startDeviceMotionUpdatesToQueue:[NSOperationQueue currentQueue] withHandler:^(CMDeviceMotion *motion, NSError *error) {
+    [self.motionManager startDeviceMotionUpdatesUsingReferenceFrame:
+     CMAttitudeReferenceFrameXTrueNorthZVertical toQueue:[NSOperationQueue currentQueue] withHandler:^(CMDeviceMotion * _Nullable motion, NSError * _Nullable error) {
         if(error){
             NSLog(@"%@", error);
         }
         [self outputMotionData:motion];
     }];
+    
+//    [self.motionManager startDeviceMotionUpdatesToQueue:[NSOperationQueue currentQueue] withHandler:^(CMDeviceMotion *motion, NSError *error) {
+//        if(error){
+//            NSLog(@"%@", error);
+//        }
+//        [self outputMotionData:motion];
+//    }];
 
 }
 
